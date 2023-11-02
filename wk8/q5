@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+
+import sys
+import psycopg2
+
+
+if len(sys.argv) < 3:
+    print(f"Usage: {sys.argv[0]} subject term")
+    sys.exit(1)
+
+subject = sys.argv[1]
+term = sys.argv[2]
+conn = None
+
+subject_query = """
+select  s.longname
+from    subjects s
+where   s.code = %s;
+"""
+
+term_query = """
+select  t.id
+from    terms t
+where   t.code = %s;
+"""
+
+query = """
+select  p.id, p.family, p.given
+from    subjects s
+        join courses c on s.id = c.subject
+        join terms t on c.term = t.id
+        join course_enrolments e on e.course = c.id
+        join people p on p.id = e.student
+where   s.code = %s and t.code = %s
+order   by p.family, p.given;
+"""
+
+try:
+    conn = psycopg2.connect("dbname=uni")
+    cur = conn.cursor()
+
+    # Check if the subject exists
+    cur.execute(subject_query, [subject])
+    subject_name = cur.fetchone()
+    if not subject_name:
+        print(f"Invalid subject {subject}")
+        sys.exit()
+    subject_name = subject_name[0]
+
+    # Check if the term exists
+    cur.execute(term_query, [term])
+    if not cur.fetchone():
+        print(f"Invalid term {term}")
+        sys.exit()
+
+    # Run the main query
+    cur.execute(query, [subject, term])
+    students = cur.fetchall()
+
+    # No students returned means that the subject was not offered during that term
+    if not students:
+        print(f"No offering: {subject} {term}")
+        sys.exit()
+
+    # Print the subject code along with the term and full subject name
+    print(f"{subject} {term} {subject_name}")
+
+    # Loop through the students and print their details row by row
+    for zid, family_name, given_name in students:
+        print(f"{zid} {family_name}, {given_name}")
+
+except psycopg2.Error as err:
+    print("Database error: ", err)
+finally:
+    if conn:
+        conn.close()

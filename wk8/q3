@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+
+import sys
+import psycopg2
+
+
+if len(sys.argv) < 3:
+    print(f"Usage: {sys.argv[0]} studentID term")
+    sys.exit(1)
+
+student = sys.argv[1]
+term = sys.argv[2]
+conn = None
+
+query = """
+select  s.code, s.name
+from    subjects s
+        join courses c on s.id = c.subject
+        join terms t on c.term = t.id
+        join course_enrolments e on e.course = c.id
+where   e.student = %s and t.code = %s
+order   by s.code;
+"""
+
+try:
+    conn = psycopg2.connect(dbname="uni")
+    cur = conn.cursor()
+    # 'student' (sys.argv[1]) gets parsed as the first %s
+    # 'term' (sys.argv[2]) gets parsed as the second %s
+    cur.execute(query, [student, term])
+    results = cur.fetchall()
+
+    # [('COMP1521', 'Computer System Fundamentals'), ('COMP3311', 'Database Systems')]
+
+    # This is equivalent to
+    # if len(results) == 0:
+    if not results:
+        print("No such student")
+        sys.exit()
+
+    # Naive way of decomposing a tuple
+
+    # for result in results:
+    #     # subject_code = result[0]
+    #     # subject_name = result[1]
+    #     # Alternatively, we can also write:
+    #     subject_code, subject_name = result
+    #     print(f"{subject_code} {subject_name}")
+
+    for subject_code, subject_name in results:
+        print(f"{subject_code} {subject_name}")
+
+except psycopg2.Error as err:
+    print("Database error: ", err)
+finally:
+    if conn:
+        conn.close()

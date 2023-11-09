@@ -1,0 +1,123 @@
+Week 9 Tutorial Questions
+
+
+Q1
+
+a.
+X functionally determines all the other attributes
+
+b.
+A → B holds
+B → A does not hold
+A → C does not hold
+C → A does not hold
+B → C does not hold
+AB → C does not hold
+
+c.
+One to one relationship
+
+
+
+Q2
+
+a. A+ = {A, B}
+b. ACEG+ = {A, B, C, E, F, G}
+c. BD+ = {A, B, C, D, E, F, G}
+BD is a candidate key (which means it's a super key)
+BCD is a super key (but not a candidate key because it can be reduced)
+
+
+
+Q3
+
+F = { A → B, BC → E, ED → A }
+
+a.
+ACD+ = {A, B, C, D, E}
+BCD+ = {A, B, C, D, E}
+CDE+ = {A, B, C, D, E}
+
+b. Yes in 3NF, because all the right hand sides are a single attribute of a candidate key
+
+c. Not in BCNF, none of the FDs are trivial and none of the left hand sides is a super key
+
+
+
+Q4
+
+i. C → D, C → A, B → C
+
+a. B+ = {A, B, C, D}
+b. Not in BCNF (for C → D, C is not a super key)
+c. Not in 3NF (for C → D, D is not part of a candidate key)
+
+
+iv. A → B, BC → D, A → C
+
+a. A+ = {A, B, C, D}
+b. Not in BCNF (for BC → D, BC is not a super key)
+c. Not in 3NF (for BC → D, D is not part of a candidate key)
+
+
+v. AB → C, AB → D, C → A, D → B
+
+a. 
+AB+ = {A, B, C, D}
+BC+ = {A, B, C, D}
+CD+ = {A, B, C, D}
+AD+ = {A, B, C, D}
+
+b. Not in BCNF (for C → A, C is not a super key)
+c. Yes in 3NF
+
+
+vi. A → BCD
+
+a. A+ = {A, B, C, D}
+b. Yes in BCNF (for A → BCD, A is a super key)
+c. Yes in 3NF (BCNF implies 3NF)
+
+
+
+Q13
+
+Steps
+1. Put FDs into canonical form (convert into X → Y where Y is a single attribute)
+2. Eliminate redundant attributes (look out if X's are multi-part)
+3. Eliminate redundant FDs (look out for cycles, or FDs according to the rules above)
+
+
+F = { B → A,  D → A,  AB → D }
+
+Let's follow the above steps for the provided functional dependencies.
+
+1. This is already done
+2. Because we have AB → D, potentially A or B is redundant (we have to check)
+Since we have B → A, therefore A must be redundant in the functional dependency AB → D.
+Therefore, at this point, we can write F as { B → A, D → A,  B → D }
+3. There is a cycle and we do not need B → A (due to transitivity from B → D → A)
+
+Hence, the minimal cover is F = {D → A,  B → D}.
+
+
+
+Q17
+
+We can combine the BH's and write the reduced minimal cover as:
+{ BH → CE, A → D, C → E, F → A, E → F }
+
+Removing arrows and converting into relations, we have:
+BHCE, AD, CE, FA, EF (primary keys are: BH, A, C, F, E respectively)
+
+Let's determine the candidate key for the original schema.
+BH+ = {A, B, C, D, E, F, H}
+Candidate key is BHG (note that G was missing in the closure above)
+
+Therefore, we need a separate relation with solely this candidate key, and so our answer has the following tables:
+- BHCE (primary key is BH)
+- AD (primary key is A)
+- CE (primary key is C)
+- FA (primary key is F)
+- EF (primary key is E)
+- BHG (primary key is BHG)

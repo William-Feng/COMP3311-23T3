@@ -1,0 +1,190 @@
+Q3
+
+Proj[speed](PCs) is equivalent to
+select speed from PCs;
+
+a. {700, 1000, 1500}
+b. {700, 700, 1000, 1000, 1500}
+c. (700 + 1000 + 1500) / 3 = 1066.67
+d. (700 + 700 + 1000 + 1000 + 1500) / 5 = 980
+e. No difference
+
+
+
+Q4
+
+a. R Div S = R / S
+
+ABC / BC = A, which is the column in the output.
+
+Result
+A
+----
+a1
+
+
+b. R Div Sel[B != b1](S)
+
+Temp = Sel[B != b1](S)
+Result = R Div Temp
+
+Sel[B != b1](S) is equivalent to
+select * from S where B != b1;
+
+Temp
+B  | C
+-------
+b2 | c2
+
+R Div Temp
+
+ABC / BC = A, which is the column in the output.
+
+Result
+A
+---
+a1
+
+
+d. R × S - Sel[R.C=S.C](R Join[B=B] S)
+
+Temp1 = R × S
+Temp2 = R Join[B=B] S
+Temp3 = Sel[R.C=S.C](Temp2)
+Result = Temp1 - Temp3
+
+Temp1 = R × S
+R.A  R.B  R.C  S.B  S.C
+------------------------
+a1   b1   c1   b1   c1
+a1   b1   c1   b2   c2
+a1   b2   c2   b1   c1
+a1   b2   c2   b2   c2
+a2   b1   c1   b1   c1
+a2   b1   c1   b2   c2
+
+Temp2 = R Join[B=B] S
+R.A  R.B  R.C  S.B  S.C
+------------------------
+a1   b1   c1   b1   c1
+a1   b2   c2   b2   c2
+a2   b1   c1   b1   c1
+
+Temp3 = Sel[R.C=S.C](Temp2)
+R.A  R.B  R.C  S.B  S.C
+------------------------
+a1   b1   c1   b1   c1
+a1   b2   c2   b2   c2
+a2   b1   c1   b1   c1
+
+Result = Temp1 - Temp3
+R.A  R.B  R.C  S.B  S.C
+------------------------
+a1   b1   c1   b2   c2
+a1   b2   c2   b1   c1
+a2   b1   c1   b2   c2
+
+
+
+Q7
+
+a.
+
+select  S.sname
+from    Suppliers S
+        join    Catalog c on s.sid = c.supplier
+        join    Parts p on c.part = p.pid
+where   p.colour = 'red';
+
+
+Method 1
+RedParts = Sel[colour = 'red'](Parts)
+RedPartsCatalog = RedParts Join[pid = part] Catalog
+SuppliersRed = RedPartsCatalog Join [supplier = sid] Suppliers
+Result = Proj[sname](SuppliersRed)
+
+Method 2
+RedPartIds(part) = Proj[pid](Sel[colour = 'red'](Parts))
+RedPartSuppliers(sid) = Proj[supplier](RedPartIds Join Catalog)
+Result = Proj[sname](RedPartSuppliers Join Suppliers)
+
+
+
+Q11
+
+We can swap the order of operations if ANY of these 2 conditions hold true:
+- EITHER the operations are on DIFFERENT data items, 
+- OR both operations are READ.
+
+Because T3:W(A) happens before T1:R(A), i.e. we cannot swap them, T3 -> T1.
+Because T2:R(B) happens before T3:W(B), i.e. we cannot swap them, T2 -> T3.
+
+Therefore, the precendence graph is T2 -> T3 -> T1.
+Note: this means that we can swap the operations to end up with that above schedule.
+Thus, this is conflict serialisable.
+
+
+
+Q13
+
+a.
+
+T1: R(X)      W(X)
+T2:      R(X)      W(X)
+
+Because T1:R(X) happens before T2:W(X), T1 -> T2.
+Because T2:R(X) happens before T1:W(X), T2 -> T1.
+
+Therefore, we have a cycle (no precedence graph).
+Thus, this is NOT conflict serialisable.
+
+
+To check view serialisability, let's try the 2 possible orderings.
+
+T1 -> T2:
+
+T1: R(X) W(X)
+T2:           R(X) W(X)
+
+This does not work.
+
+T2 -> T1:
+
+T1:           R(X) W(X)
+T2: R(X) W(X)
+
+This does not work.
+
+Thus, this is NOT view serialisable.
+
+
+b.
+
+T1: W(X)      R(Y)
+T2:      R(Y)      R(X)
+
+Because T1:W(X) happens before T2:R(X), T1 -> T2.
+Therefore, we have the precedence graph.
+Thus, this is conflict serialisable.
+
+By definition, this mean it's also view serialisable.
+
+
+e.
+
+T1: R(X)      W(X)
+T2:      W(X)
+T3:                W(X)
+
+Because T1:R(X) happens before T2:W(X), T1 -> T2.
+Because T1:R(X) happens before T3:W(X), T1 -> T3.
+Because T2:W(X) happens before T1:W(X), T2 -> T1.
+
+Again, we have a cycle and so this is NOT conflict serialisable.
+
+
+T1: R(X) W(X)
+T2:          W(X)
+T3:              W(X)
+
+Thus, this is view serialisable.
